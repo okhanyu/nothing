@@ -5,7 +5,7 @@ import (
 	"gorm.io/gorm"
 	"log"
 	"nothing/internal/app/blog/model/post"
-	repository2 "nothing/internal/app/blog/repository"
+	repository "nothing/internal/app/blog/repository"
 	"nothing/internal/pkg/database"
 	"strings"
 )
@@ -67,7 +67,7 @@ func Order(column string, sort int) Option {
 			if column == "" {
 				column = "created_at"
 			}
-			col := fmt.Sprintf("%s.%s", repository2.PostTable, column)
+			col := fmt.Sprintf("%s.%s", repository.PostTable, column)
 			if sort == 0 {
 				return fmt.Sprintf("%s %s", col, "desc")
 			}
@@ -169,9 +169,9 @@ func (pri *PostRepositoryImpl) FindBatchPartition(req post.FindReq, rowNum int) 
 	var postList []*post.PostPartitionBo
 	//db := NormalConditionHandle(s.db, req, QueryBatch)
 	err := pri.DB.GormDB.Raw("SELECT subquery.*,pc.name as `category_name` FROM ( SELECT *, "+
-		"ROW_NUMBER() OVER ( PARTITION BY category_id ORDER BY id ) AS row_num FROM "+repository2.PostTable+" WHERE type in ? AND deleted = 0 And hide = 0 ORDER BY created_at DESC) "+
-		"AS subquery LEFT JOIN "+repository2.PostCategoryTable+" AS pc ON pc.`id` = subquery."+
-		"category_id WHERE row_num <= ? ",
+		"ROW_NUMBER() OVER ( PARTITION BY category_id ORDER BY id ) AS row_num FROM "+repository.PostTable+" WHERE type in ? AND deleted = 0 And hide = 0 ORDER BY created_at DESC) "+
+		"AS subquery LEFT JOIN "+repository.PostCategoryTable+" AS pc ON pc.`id` = subquery."+
+		"category_id WHERE row_num <= ? order by pc.`id` asc",
 		req.Type, rowNum).Scan(&postList).Error
 	if err != nil {
 		panic(err)
