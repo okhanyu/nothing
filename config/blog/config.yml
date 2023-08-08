@@ -1,0 +1,11 @@
+system:
+  jwt_key:
+  db: #:#@tcp(#:#)/#?charset=utf8mb4&parseTime=True&loc=Local
+  db_pub: #:#@tcp(#:#)/#?charset=utf8mb4&parseTime=True&loc=Local
+  port: 9999
+  api_prefix: blog/api/
+
+business:
+  row_num: 5
+
+
