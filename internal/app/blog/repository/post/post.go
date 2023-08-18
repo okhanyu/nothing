@@ -1,6 +1,7 @@
 package post
 
 import (
+	"context"
 	"fmt"
 	"gorm.io/gorm"
 	"log"
@@ -20,6 +21,8 @@ type PostRepository interface {
 	FindBatch(option ...Option) ([]*post.PostBo, error)
 	FindByID(id int64, option ...Option) (*post.PostBo, error)
 	FindBatchPartition(req post.FindReq, rowNum int) ([]*post.PostPartitionBo, error)
+	CreatePost(context.Context, post.CreateReq) error
+	FindAttachmentContent(req post.FindReq, option ...Option) ([]string, error)
 }
 
 type PostRepositoryImpl struct {
@@ -135,6 +138,36 @@ func WithCategory() Option {
 	}
 }
 
+func AttachmentWithGroupBy() Option {
+	return func(db *gorm.DB) *gorm.DB {
+		db = db.Group("post_id")
+		return db
+	}
+}
+
+func AttachmentWithOnlyImage(primaryType []int) Option {
+	return func(db *gorm.DB) *gorm.DB {
+		db = db.Where("primary_type in (?)", primaryType)
+		return db
+	}
+}
+
+func AttachmentWithOrder(column string, sort int) Option {
+	return func(db *gorm.DB) *gorm.DB {
+		db = db.Order(func() string {
+			if column == "" {
+				column = "created_at"
+			}
+			col := fmt.Sprintf("%s.%s", repository.PostTable, column)
+			if sort == 0 {
+				return fmt.Sprintf("%s %s", col, "desc")
+			}
+			return fmt.Sprintf("%s %s", col, "asc")
+		}())
+		return db
+	}
+}
+
 func (pri *PostRepositoryImpl) FindByID(id int64, opts ...Option) (*post.PostBo, error) {
 	db := pri.DB.GormDB
 	for _, opt := range opts {
@@ -173,15 +206,61 @@ func (pri *PostRepositoryImpl) FindBatchPartition(req post.FindReq, rowNum int) 
 		"AS subquery LEFT JOIN "+repository.PostCategoryTable+" AS pc ON pc.`id` = subquery."+
 		"category_id WHERE row_num <= ? order by pc.`id` asc",
 		req.Type, rowNum).Scan(&postList).Error
-	if err != nil {
-		panic(err)
-	}
-
-	fmt.Println(postList)
 
 	if err != nil {
 		log.Print(err)
 		return nil, err
 	}
 	return postList, nil
+}
+
+func (pri *PostRepositoryImpl) CreatePost(_ context.Context, req post.CreateReq) error {
+	err := pri.DB.GormDB.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Create(&req.Main).Error; err != nil {
+			return err
+		}
+		for _, attachment := range req.Attachment {
+			if err := tx.Create(&attachment).Error; err != nil {
+				return err
+			}
+		}
+
+		if err := tx.Create(&req.Extend).Error; err != nil {
+			return err
+		}
+		// 返回 nil 表示事务提交
+		return nil
+	})
+	if err != nil {
+		//	log.Print(err)
+		return err
+	}
+	return nil
+}
+
+func (pri *PostRepositoryImpl) FindAttachmentContent(req post.FindReq, opts ...Option) ([]string, error) {
+
+	db := pri.DB.GormDB
+	//for _, opt := range opts {
+	//	db = opt(db)
+	//}
+	var attachmentContentList []string
+	err := db.Raw("select att.content from "+repository.
+		PostAttachmentTable+" as att left join  "+repository.PostTable+" as main on main."+
+		"id = att."+
+		"post_id where main.type in (?) and main.deleted = 0 and att.primary_type in (?)  group by att.post_id, "+
+		"att.content, att.created_at order by att.created_at desc limit ?,?",
+		req.Type, req.PrimaryType, func() int {
+			if req.Page.PageNumber >= 1 {
+				return (req.Page.PageNumber - 1) * req.Page.PageSize
+			}
+			return 0 * req.Page.PageSize
+		}(), req.Page.PageSize).Scan(
+		&attachmentContentList).Error
+
+	if err != nil {
+		log.Print(err)
+		return nil, err
+	}
+	return attachmentContentList, nil
 }

@@ -1,11 +1,12 @@
 system:
   jwt_key:
-  db:
   db_pub:
+  db:
   port: 9999
   api_prefix: blog/api/
 
 business:
   row_num: 5
+  rss_sys: 3
 
 

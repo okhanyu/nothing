@@ -26,9 +26,9 @@ type PostAttachment struct {
 }
 
 type PostExtend struct {
-	repository.BaseModel
-	Likes int `json:"likes" form:"likes" gorm:"column:likes"`
-	Views int `json:"views" form:"views" gorm:"column:views"`
+	ID    int64 `json:"id" form:"id"  gorm:"column:id;primaryKey"`
+	Likes int   `json:"likes" form:"likes" gorm:"column:likes"`
+	Views int   `json:"views" form:"views" gorm:"column:views"`
 }
 
 type PostCategory struct {

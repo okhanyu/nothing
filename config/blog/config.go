@@ -15,6 +15,7 @@ type Config struct {
 
 type BusinessConfig struct {
 	RowNum int `yaml:"row_num"`
+	RssSys int `yaml:"rss_sys"`
 }
 
 type SystemConfig struct {

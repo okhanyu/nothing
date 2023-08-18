@@ -11,10 +11,12 @@ import (
 )
 
 type SettingRss struct {
-	Title       string
-	Link        string
-	Description string
-	Author      *feeds.Author
+	Title          string        `json:"title"`
+	Link           string        `json:"link"`
+	Description    string        `json:"description"`
+	Author         *feeds.Author `json:"author"`
+	RssItemLinkPre string        `json:"rss_item_link_pre"`
+	RssLink        string        `json:"rss_link"`
 }
 
 func Rss(settings *setting.SettingBo, boPost []*post.SimplePostVo) string {
@@ -36,7 +38,7 @@ func Rss(settings *setting.SettingBo, boPost []*post.SimplePostVo) string {
 		// 添加一些示例项
 		item := &feeds.Item{
 			Title:       bo.Title,
-			Link:        &feeds.Link{Href: fmt.Sprintf("https://hanyu.life/blog/detail.html?id=%d", bo.ID)},
+			Link:        &feeds.Link{Href: fmt.Sprintf("%s%d", settingRss.RssItemLinkPre, bo.ID)},
 			Description: bo.Summary,
 			Created:     *bo.CreatedAt,
 			Author:      settingRss.Author,

@@ -5,7 +5,14 @@ import (
 	"nothing/internal/app/blog/model/user"
 )
 
-func AssemblePostBoToVoForHiddenList(boList []*post.PostBo) []*post.HiddenPostVo {
+type PostAssembler struct {
+}
+
+func NewAssembler() *PostAssembler {
+	return &PostAssembler{}
+}
+
+func (pa *PostAssembler) AssemblePostBoToVoForHiddenList(boList []*post.PostBo) []*post.HiddenPostVo {
 	var voList []*post.HiddenPostVo
 	for _, bo := range boList {
 		vo := &post.HiddenPostVo{
@@ -18,7 +25,7 @@ func AssemblePostBoToVoForHiddenList(boList []*post.PostBo) []*post.HiddenPostVo
 	return voList
 }
 
-func AssemblePostBoToVoForSimpleList(boList []*post.PostBo) []*post.SimplePostVo {
+func (pa *PostAssembler) AssemblePostBoToVoForSimpleList(boList []*post.PostBo) []*post.SimplePostVo {
 	var voList []*post.SimplePostVo
 	for _, bo := range boList {
 		vo := &post.SimplePostVo{
@@ -55,7 +62,7 @@ func AssemblePostBoToVoForSimpleList(boList []*post.PostBo) []*post.SimplePostVo
 	return voList
 }
 
-func AssemblePostBoToVoForNormalList(boList []*post.PostBo, respAttachmentMode int) []*post.NormalPostVo {
+func (pa *PostAssembler) AssemblePostBoToVoForNormalList(boList []*post.PostBo, respAttachmentMode int) []*post.NormalPostVo {
 	var voList []*post.NormalPostVo
 	for _, bo := range boList {
 		vo := &post.NormalPostVo{
@@ -90,16 +97,16 @@ func AssemblePostBoToVoForNormalList(boList []*post.PostBo, respAttachmentMode i
 				if respAttachmentMode == 0 {
 					return nil
 				}
-				return AssembleAttachmentToMap(bo.Attachments)
+				return pa.AssembleAttachmentToMap(bo.Attachments)
 			}(),
-			Attachments: AssembleAttachment(bo.Attachments),
+			Attachments: pa.AssembleAttachment(bo.Attachments),
 		}
 		voList = append(voList, vo)
 	}
 	return voList
 }
 
-func AssembleAttachment(boList []post.PostAttachment) []post.PostAttachmentVo {
+func (pa *PostAssembler) AssembleAttachment(boList []post.PostAttachment) []post.PostAttachmentVo {
 	var voList []post.PostAttachmentVo
 	for _, bo := range boList {
 		vo := post.PostAttachmentVo{
@@ -115,7 +122,7 @@ func AssembleAttachment(boList []post.PostAttachment) []post.PostAttachmentVo {
 	return voList
 }
 
-func AssembleAttachmentToMap(boList []post.PostAttachment) map[int][]post.PostAttachmentVo {
+func (pa *PostAssembler) AssembleAttachmentToMap(boList []post.PostAttachment) map[int][]post.PostAttachmentVo {
 	voMap := make(map[int][]post.PostAttachmentVo)
 	for _, bo := range boList {
 		//if item, ok := voMap[bo.PrimaryType]; ok {
@@ -134,7 +141,7 @@ func AssembleAttachmentToMap(boList []post.PostAttachment) map[int][]post.PostAt
 	return voMap
 }
 
-func AssemblePartitionPostBoToVo(boList []*post.PostPartitionBo) []*post.PartitionPostVo {
+func (pa *PostAssembler) AssemblePartitionPostBoToVo(boList []*post.PostPartitionBo) []*post.PartitionPostVo {
 	var voList []*post.PartitionPostVo
 	for _, bo := range boList {
 		vo := &post.PartitionPostVo{

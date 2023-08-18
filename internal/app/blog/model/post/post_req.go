@@ -15,6 +15,13 @@ type FindReq struct {
 	Location           string `json:"location" form:"location" gorm:"column:location"`
 	Order              int    `json:"order" form:"order"`
 	Mode               string `json:"mode" form:"mode"`
+	PrimaryType        []int  `json:"primary_type" form:"primary_type"  gorm:"column:primary_type"`
 	Page               common.Page
 	RespAttachmentMode int `json:"resp_attachment_mode" form:"resp_attachment_mode"`
+}
+
+type CreateReq struct {
+	Main       PostMain         `json:"main" form:"main"`
+	Attachment []PostAttachment `json:"attachment" form:"attachment"`
+	Extend     PostExtend       `json:"extend" form:"extend"`
 }

@@ -1,6 +1,7 @@
 package post
 
 import (
+	"golang.org/x/net/context"
 	"log"
 	"nothing/config/blog"
 	postcons "nothing/internal/app/blog/cons/post"
@@ -94,4 +95,30 @@ func (ps *PostService) FindBatch(req post.FindReq) ([]*post.PostBo, error) {
 		return nil, err
 	}
 	return posts, nil
+}
+
+func (ps *PostService) CreatePost(ctx context.Context, req post.CreateReq) error {
+	err := ps.Repository.CreatePost(ctx, req)
+	if err != nil {
+		log.Print(err)
+		return err
+	}
+	return nil
+}
+
+func (ps *PostService) FindAttachmentContent(req post.FindReq) ([]string, error) {
+	rep := ps.Repository
+
+	var contents []string
+	var err error
+	contents, err = rep.FindAttachmentContent(
+		req,
+		//req, postRepo.Limit(req.Page.PageNumber, req.Page.PageSize),
+	)
+
+	if err != nil {
+		log.Print(err)
+		return nil, err
+	}
+	return contents, nil
 }
