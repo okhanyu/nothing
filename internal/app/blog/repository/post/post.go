@@ -248,14 +248,8 @@ func (pri *PostRepositoryImpl) FindAttachmentContent(req post.FindReq, opts ...O
 	err := db.Raw("select att.content from "+repository.
 		PostAttachmentTable+" as att left join  "+repository.PostTable+" as main on main."+
 		"id = att."+
-		"post_id where main.type in (?) and main.deleted = 0 and att.primary_type in (?)  group by att.post_id, "+
-		"att.content, att.created_at order by att.created_at desc limit ?,?",
-		req.Type, req.PrimaryType, func() int {
-			if req.Page.PageNumber >= 1 {
-				return (req.Page.PageNumber - 1) * req.Page.PageSize
-			}
-			return 0 * req.Page.PageSize
-		}(), req.Page.PageSize).Scan(
+		"post_id where main.type in (?) and main.deleted = 0 and att.primary_type in (?) order by RAND() limit ?",
+		req.Type, req.PrimaryType, req.Page.PageSize).Scan(
 		&attachmentContentList).Error
 
 	if err != nil {
