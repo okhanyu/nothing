@@ -6,14 +6,28 @@ import (
 	"time"
 )
 
-func StsCos() *sts.CredentialResult {
-	appid := "1317812630"
-	bucket := "hanyufile-1317812630"
-	region := "ap-beijing"
+type Cos struct {
+	Key    string
+	Id     string
+	Appid  string
+	Bucket string
+	Region string
+}
+
+func NewCos(key string, id string, appid string, bucket string, region string) *Cos {
+	return &Cos{Key: key, Id: id, Appid: appid, Bucket: bucket, Region: region}
+}
+
+func (cos *Cos) StsCos() *sts.CredentialResult {
+	appid := cos.Appid
+	bucket := cos.Bucket
+	region := cos.Region
 	c := sts.NewClient(
 		// 通过环境变量获取密钥, os.Getenv 方法表示获取环境变量
-		"AKID1wkNvKXcZPygVEOVcbP6kNp4Bh6KRdrA", // 用户的 SecretId，建议使用子账号密钥，授权遵循最小权限指引，降低使用风险。子账号密钥获取可参考https://cloud.tencent.com/document/product/598/37140
-		"On9UjR5vdBbtBMROHGC6taL2dAb2NXZU",     // 用户的 SecretKey，建议使用子账号密钥，授权遵循最小权限指引，降低使用风险。子账号密钥获取可参考https://cloud.tencent.com/document/product/598/37140
+		cos.Id, // 用户的 SecretId，建议使用子账号密钥，授权遵循最小权限指引，降低使用风险。子账号密钥获取可参考https://cloud.
+		// tencent.com/document/product/598/37140
+		cos.Key, // 用户的 SecretKey，建议使用子账号密钥，授权遵循最小权限指引，降低使用风险。子账号密钥获取可参考https://cloud.tencent.
+		// com/document/product/598/37140
 		nil,
 		// sts.Host("sts.internal.tencentcloudapi.com"), // 设置域名, 默认域名sts.tencentcloudapi.com
 		// sts.Scheme("http"),      // 设置协议, 默认为https，公有云sts获取临时密钥不允许走http，特殊场景才需要设置http
@@ -62,7 +76,7 @@ func StsCos() *sts.CredentialResult {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Printf("%+v\n", res)
+	//fmt.Printf("%+v\n", res)
 	fmt.Printf("%+v\n", res.Credentials)
 
 	return res

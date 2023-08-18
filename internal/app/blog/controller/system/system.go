@@ -23,19 +23,21 @@ type SystemController struct {
 	SettingService *settingservice.SettingService
 	PostService    *postservice.PostService
 	PostAssembler  *postcontroller.PostAssembler
+	CosOperate     *cos.Cos
 }
 
 func NewSystemController(postServ *postservice.PostService, settingServ *settingservice.SettingService,
-	postAssembler *postcontroller.PostAssembler) *SystemController {
+	postAssembler *postcontroller.PostAssembler, cosOperate *cos.Cos) *SystemController {
 	return &SystemController{
 		PostService:    postServ,
 		SettingService: settingServ,
 		PostAssembler:  postAssembler,
+		CosOperate:     cosOperate,
 	}
 }
 
 func (sc *SystemController) QueryCredential(c *gin.Context) {
-	credential := cos.StsCos()
+	credential := sc.CosOperate.StsCos()
 	//if err != nil {
 	//	c.JSON(http.StatusOK, response.ErrUnknown)
 	//	return

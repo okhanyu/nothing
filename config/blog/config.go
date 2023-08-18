@@ -23,6 +23,11 @@ type SystemConfig struct {
 	Db        string `yaml:"db"`
 	Port      int    `yaml:"port"`
 	ApiPrefix string `yaml:"api_prefix"`
+	CosId     string `yaml:"cos_id"`
+	CosKey    string `yaml:"cos_key"`
+	CosAppid  string `yaml:"cos_appid"`
+	CosBucket string `yaml:"cos_bucket"`
+	CosRegion string `yaml:"cos_region"`
 }
 
 func ParseConfig(configFile string) *Config {

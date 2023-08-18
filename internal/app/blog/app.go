@@ -16,6 +16,7 @@ import (
 	settingservice "nothing/internal/app/blog/service/setting"
 	userservice "nothing/internal/app/blog/service/user"
 	"nothing/internal/pkg/database"
+	"nothing/pkg/cos"
 	"nothing/pkg/jwt"
 	"nothing/pkg/response"
 	"nothing/pkg/server"
@@ -60,7 +61,8 @@ func CreateBlogServer(name string, conf *blog.Config) (*server.Server, error) {
 		server.WithRouter(
 			PostRouteRegister(post.NewPostController(postService, postAssembler)),
 			SettingRouteRegister(setting.NewSettingController(settingService)),
-			SystemRouteRegister(system.NewSystemController(postService, settingService, postAssembler)),
+			SystemRouteRegister(system.NewSystemController(postService, settingService, postAssembler,
+				cos.NewCos(conf.System.CosKey, conf.System.CosId, conf.System.CosAppid, conf.System.CosBucket, conf.System.CosRegion))),
 			UserRouteRegister(user.NewUserController(userservice.NewUserService(userrepo.NewUserRepository(db)))),
 		),
 	)
