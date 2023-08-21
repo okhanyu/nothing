@@ -204,7 +204,7 @@ func (pri *PostRepositoryImpl) FindBatchPartition(req post.FindReq, rowNum int) 
 	err := pri.DB.GormDB.Raw("SELECT subquery.*,pc.name as `category_name` FROM ( SELECT *, "+
 		"ROW_NUMBER() OVER ( PARTITION BY category_id ORDER BY id ) AS row_num FROM "+repository.PostTable+" WHERE type in ? AND deleted = 0 And hide = 0 ORDER BY created_at DESC) "+
 		"AS subquery LEFT JOIN "+repository.PostCategoryTable+" AS pc ON pc.`id` = subquery."+
-		"category_id WHERE row_num <= ? order by pc.`id` asc",
+		"category_id WHERE row_num <= ? order by pc.`created_at` asc",
 		req.Type, rowNum).Scan(&postList).Error
 
 	if err != nil {
