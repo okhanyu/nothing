@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"github.com/gorilla/feeds"
 	"log"
-	"nothing/internal/app/blog/model/post"
-	"nothing/internal/app/blog/model/setting"
+	"nothing/internal/app/model/post"
+	"nothing/internal/app/model/setting"
 	"time"
 )
 

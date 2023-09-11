@@ -2,9 +2,14 @@ package server
 
 import (
 	"fmt"
+	jwt2 "github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"nothing/internal/pkg/database"
+	"nothing/pkg/jwt"
+	"nothing/pkg/response"
+	"nothing/pkg/util"
+	"strings"
 )
 
 type Option func(server *Server)
@@ -40,7 +45,9 @@ func WithRouter(router ...func(r *gin.Engine)) Option {
 
 func WithFilter(f ...gin.HandlerFunc) Option {
 	return func(s *Server) {
-		FilterRegister(s.Engine, f...)
+		if f != nil && len(f) != 0 {
+			s.Engine.Use(f...)
+		}
 	}
 }
 
@@ -50,7 +57,7 @@ func WithDB(dsn string) Option {
 	}
 }
 
-func CorsMiddleware() gin.HandlerFunc {
+func CorsMiddlewareFilter() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		c.Header("Access-Control-Allow-Origin", "*")
 		c.Header("Access-Control-Allow-Headers", "Content-Type,AccessToken,X-CSRF-Token, Authorization, Token, x-token")
@@ -67,14 +74,48 @@ func CorsMiddleware() gin.HandlerFunc {
 	}
 }
 
-func FilterRegister(e *gin.Engine, f ...gin.HandlerFunc) {
-	if f != nil && len(f) != 0 {
-		e.Use(f...)
-	}
-}
-
 //type Router struct {
 //	Path    string
 //	Handler func(c *gin.Context)
 //	Mark    bool
 //}
+
+var whites = []string{
+	"/login",
+	"/blog/api/post/batch/query",
+	"/blog/api/setting/batch/query",
+	"/blog/api/post/attachment/content/query",
+	"/blog/api/post/partition/batch/query",
+	"/blog/api/post/query",
+	"/feed",
+	"/index.xml",
+	"/blog/index.xml",
+	"/blog/feed",
+}
+
+func AuthHandleFilter() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		//if ctx.Request.Method == http.MethodGet || strings.Contains(ctx.Request.RequestURI, "login") {
+		//	ctx.Next()
+		//	return
+		//}
+		uri := strings.Split(ctx.Request.RequestURI, "?")[0]
+		if util.ArraysStringContain(whites, uri) {
+			ctx.Next()
+			return
+		}
+		authHeader := ctx.GetHeader("Authorization")
+		tokenString := ""
+		if strings.HasPrefix(authHeader, "Bearer ") {
+			// 提取令牌部分
+			tokenString = authHeader[7:]
+		}
+		result, err := jwt.Verify(tokenString)
+		if err != nil || result == false {
+			ctx.JSON(http.StatusOK, response.ErrJwtToken.BuildData(err.(*jwt2.ValidationError).Error()))
+			ctx.Abort()
+			return
+		}
+		ctx.Next()
+	}
+}
